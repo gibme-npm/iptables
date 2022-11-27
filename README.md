@@ -1,5 +1,11 @@
 # Simple IPTables helper/wrapper
 
+## Documentation
+
+[https://gibme-npm.github.io/iptables/](https://gibme-npm.github.io/iptables/)
+
+## Sample Code
+
 ```typescript
 import IPTables from '@gibme/iptables';
 

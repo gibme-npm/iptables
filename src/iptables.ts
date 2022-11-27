@@ -1,23 +1,43 @@
-// Copyright (c) 2016-2022 Brandon Lehmann
+// Copyright (c) 2016-2022, Brandon Lehmann <brandonlehmann@gmail.com>
 //
-// Please see the included LICENSE file for more information.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 import { EventEmitter } from 'events';
 import LazyStorage from '@gibme/lazy-storage';
 import which from 'which';
 import { exec } from 'child_process';
+import { resolve } from 'path';
 
-interface OptionalOptions {
+export interface OptionalOptions {
     stdTTL: number;
+    /**
+     * The path to the IP tables binary
+     * @default <locate | /usr/sbin/iptables>
+     */
     iptables: string;
 }
 
-interface RequiredOptions {
+export interface RequiredOptions {
     chain: string;
 }
 
-interface Options extends RequiredOptions, Partial<OptionalOptions> {
-}
+export interface Options extends RequiredOptions, Partial<OptionalOptions> {}
 
 export type JumpTarget = 'ACCEPT' | 'DROP' | string;
 
@@ -35,6 +55,7 @@ export default class IPTables extends EventEmitter {
 
         options.stdTTL ||= 300;
         options.iptables ||= which.sync('iptables', { nothrow: true }) || '/usr/sbin/iptables';
+        options.iptables = resolve(options.iptables);
 
         this.hostStorage = new LazyStorage({
             stdTTL: options.stdTTL,
@@ -68,12 +89,12 @@ export default class IPTables extends EventEmitter {
     public async add (
         host: string,
         jumpTarget: JumpTarget = 'ACCEPT'
-    ): Promise<void> {
+    ): Promise<boolean> {
         if (!this.hostStorage.has(host)) {
             await this._add(host, jumpTarget);
         }
 
-        this.hostStorage.set(host, jumpTarget);
+        return this.hostStorage.set(host, jumpTarget);
     }
 
     /**
@@ -85,12 +106,12 @@ export default class IPTables extends EventEmitter {
     public async addInterface (
         iface: string,
         jumpTarget: JumpTarget = 'ACCEPT'
-    ): Promise<void> {
+    ): Promise<boolean> {
         if (!this.ifaceStorage.has(iface)) {
             await this._addInterface(iface, jumpTarget);
         }
 
-        this.ifaceStorage.set(iface, jumpTarget);
+        return this.ifaceStorage.set(iface, jumpTarget);
     }
 
     /**
@@ -157,7 +178,7 @@ export default class IPTables extends EventEmitter {
      * @param host
      */
     public async keepAlive (host: string): Promise<void> {
-        return this.add(host);
+        await this.add(host);
     }
 
     /**
@@ -246,3 +267,5 @@ export default class IPTables extends EventEmitter {
         });
     }
 }
+
+export { IPTables };
