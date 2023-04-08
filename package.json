@@ -1,6 +1,6 @@
 {
   "name": "@gibme/iptables",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple port iptables helper/wrapper",
   "main": "dist/iptables.js",
   "types": "dist/iptables.d.ts",
@@ -37,7 +37,7 @@
     "email": "brandonlehmann@gmail.com"
   },
   "dependencies": {
-    "@gibme/lazy-storage": "^1.0.2",
+    "@gibme/cache": "^1.0.0",
     "@types/which": "^2.0.1",
     "which": "^3.0.0"
   },

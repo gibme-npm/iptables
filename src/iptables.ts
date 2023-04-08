@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 import { EventEmitter } from 'events';
-import LazyStorage from '@gibme/lazy-storage';
+import MemoryCache from '@gibme/cache/memory';
 import which from 'which';
 import { exec } from 'child_process';
 import { resolve } from 'path';
@@ -42,8 +42,8 @@ export interface Options extends RequiredOptions, Partial<OptionalOptions> {}
 export type JumpTarget = 'ACCEPT' | 'DROP' | string;
 
 export default class IPTables extends EventEmitter {
-    private readonly hostStorage: LazyStorage;
-    private readonly ifaceStorage: LazyStorage;
+    private readonly hostStorage: MemoryCache;
+    private readonly ifaceStorage: MemoryCache;
 
     /**
      * Constructs a new instance of the helper/wrapper
@@ -57,12 +57,12 @@ export default class IPTables extends EventEmitter {
         options.iptables ||= which.sync('iptables', { nothrow: true }) || '/usr/sbin/iptables';
         options.iptables = resolve(options.iptables);
 
-        this.hostStorage = new LazyStorage({
+        this.hostStorage = new MemoryCache({
             stdTTL: options.stdTTL,
             checkperiod: Math.ceil(options.stdTTL * 0.1)
         });
 
-        this.ifaceStorage = new LazyStorage({
+        this.ifaceStorage = new MemoryCache({
             stdTTL: 0
         });
 
@@ -90,7 +90,7 @@ export default class IPTables extends EventEmitter {
         host: string,
         jumpTarget: JumpTarget = 'ACCEPT'
     ): Promise<boolean> {
-        if (!this.hostStorage.has(host)) {
+        if (!await this.hostStorage.includes(host)) {
             await this._add(host, jumpTarget);
         }
 
@@ -107,7 +107,7 @@ export default class IPTables extends EventEmitter {
         iface: string,
         jumpTarget: JumpTarget = 'ACCEPT'
     ): Promise<boolean> {
-        if (!this.ifaceStorage.has(iface)) {
+        if (!await this.ifaceStorage.includes(iface)) {
             await this._addInterface(iface, jumpTarget);
         }
 
@@ -120,11 +120,11 @@ export default class IPTables extends EventEmitter {
      * @param host
      */
     public async delete (host: string): Promise<boolean> {
-        if (!this.hostStorage.has(host)) {
+        if (!await this.hostStorage.includes(host)) {
             return false;
         }
 
-        this.hostStorage.del(host);
+        await this.hostStorage.del(host);
 
         return this.rebuild();
     }
@@ -135,11 +135,11 @@ export default class IPTables extends EventEmitter {
      * @param iface
      */
     public async deleteInterface (iface: string): Promise<boolean> {
-        if (!this.ifaceStorage.has(iface)) {
+        if (!await this.ifaceStorage.includes(iface)) {
             return false;
         }
 
-        this.ifaceStorage.del(iface);
+        await this.ifaceStorage.del(iface);
 
         return this.rebuild();
     }
@@ -169,7 +169,7 @@ export default class IPTables extends EventEmitter {
     public async flushAll (): Promise<void> {
         await this.flush();
 
-        this.hostStorage.flushAll();
+        await this.hostStorage.clear();
     }
 
     /**
@@ -196,7 +196,7 @@ export default class IPTables extends EventEmitter {
         const promises = [];
 
         {
-            const list = this.hostStorage.list<string, string>();
+            const list = await this.hostStorage.list<string, string>();
 
             for (const [host, jumpTarget] of list) {
                 promises.push(this._add(host, jumpTarget));
@@ -204,7 +204,7 @@ export default class IPTables extends EventEmitter {
         }
 
         {
-            const list = this.ifaceStorage.list<string, string>();
+            const list = await this.ifaceStorage.list<string, string>();
 
             for (const [iface, jumpTarget] of list) {
                 promises.push(this._addInterface(iface, jumpTarget));
