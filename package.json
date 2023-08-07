@@ -1,6 +1,6 @@
 {
   "name": "@gibme/iptables",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A simple port iptables helper/wrapper",
   "main": "dist/iptables.js",
   "types": "dist/iptables.d.ts",
