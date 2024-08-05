@@ -31,6 +31,10 @@ export interface OptionalOptions {
      * @default <locate | /usr/sbin/iptables>
      */
     iptables: string;
+    /**
+     * The address family `ipv4` or `ipv6`
+     */
+    family: 4 | 6
 }
 
 export interface RequiredOptions {
@@ -53,8 +57,15 @@ export default class IPTables extends EventEmitter {
     constructor (public readonly options: Options) {
         super();
 
-        options.stdTTL ||= 300;
-        options.iptables ||= which.sync('iptables', { nothrow: true }) || '/usr/sbin/iptables';
+        options.stdTTL ??= 300;
+        options.family ??= 4;
+        if (options.family === 4) {
+            options.iptables ??= which.sync('iptables', { nothrow: true }) || '/usr/sbin/iptables';
+        } else if (options.family === 6) {
+            options.iptables ??= which.sync('ip6tables', { nothrow: true }) || '/usr/sbin/ip6tables';
+        } else {
+            throw new Error('Unknown address family specified');
+        }
         options.iptables = resolve(options.iptables);
 
         this.hostStorage = new MemoryCache({
