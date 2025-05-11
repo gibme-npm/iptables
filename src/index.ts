@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022, Brandon Lehmann <brandonlehmann@gmail.com>
+// Copyright (c) 2016-2025, Brandon Lehmann <brandonlehmann@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,28 +24,7 @@ import which from 'which';
 import { exec } from 'child_process';
 import { resolve } from 'path';
 
-export interface OptionalOptions {
-    stdTTL: number;
-    /**
-     * The path to the IP tables binary
-     * @default <locate | /usr/sbin/iptables>
-     */
-    iptables: string;
-    /**
-     * The address family `ipv4` or `ipv6`
-     */
-    family: 4 | 6
-}
-
-export interface RequiredOptions {
-    chain: string;
-}
-
-export interface Options extends RequiredOptions, Partial<OptionalOptions> {}
-
-export type JumpTarget = 'ACCEPT' | 'DROP' | string;
-
-export default class IPTables extends EventEmitter {
+export class IPTables extends EventEmitter {
     private readonly hostStorage: MemoryCache;
     private readonly ifaceStorage: MemoryCache;
 
@@ -54,7 +33,7 @@ export default class IPTables extends EventEmitter {
      *
      * @param options
      */
-    constructor (public readonly options: Options) {
+    constructor (public readonly options: IPTables.Options) {
         super();
 
         options.stdTTL ??= 300;
@@ -99,7 +78,7 @@ export default class IPTables extends EventEmitter {
      */
     public async add (
         host: string,
-        jumpTarget: JumpTarget = 'ACCEPT'
+        jumpTarget: IPTables.JumpTarget = 'ACCEPT'
     ): Promise<boolean> {
         if (!await this.hostStorage.includes(host)) {
             await this._add(host, jumpTarget);
@@ -116,7 +95,7 @@ export default class IPTables extends EventEmitter {
      */
     public async addInterface (
         iface: string,
-        jumpTarget: JumpTarget = 'ACCEPT'
+        jumpTarget: IPTables.JumpTarget = 'ACCEPT'
     ): Promise<boolean> {
         if (!await this.ifaceStorage.includes(iface)) {
             await this._addInterface(iface, jumpTarget);
@@ -237,7 +216,7 @@ export default class IPTables extends EventEmitter {
      */
     protected async _add (
         host: string,
-        jumpTarget: JumpTarget = 'ACCEPT',
+        jumpTarget: IPTables.JumpTarget = 'ACCEPT',
         nothrow = false
     ): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -262,7 +241,7 @@ export default class IPTables extends EventEmitter {
      */
     protected async _addInterface (
         iface: string,
-        jumpTarget: JumpTarget = 'ACCEPT',
+        jumpTarget: IPTables.JumpTarget = 'ACCEPT',
         nothrow = false
     ): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -279,4 +258,23 @@ export default class IPTables extends EventEmitter {
     }
 }
 
-export { IPTables };
+export namespace IPTables {
+    export type Options = {
+        chain: string;
+
+        stdTTL?: number;
+        /**
+         * The path to the IP tables binary
+         * @default <locate | /usr/sbin/iptables>
+         */
+        iptables?: string;
+        /**
+         * The address family `ipv4` or `ipv6`
+         */
+        family?: 4 | 6
+    }
+
+    export type JumpTarget = 'ACCEPT' | 'DROP' | string;
+}
+
+export default IPTables;

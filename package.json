@@ -1,9 +1,9 @@
 {
   "name": "@gibme/iptables",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "A simple port iptables helper/wrapper",
-  "main": "dist/iptables.js",
-  "types": "dist/iptables.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/*"
   ],
@@ -30,7 +30,7 @@
   },
   "homepage": "https://gibme-npm.github.io/iptables/",
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "engineStrict": true,
   "author": {
@@ -38,13 +38,13 @@
     "email": "brandonlehmann@gmail.com"
   },
   "dependencies": {
-    "@gibme/cache": "^1.1.13",
+    "@gibme/cache": "^2.0.0",
     "@types/which": "^3.0.4",
     "which": "^5.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.11.7",
+    "@types/node": "^22.15.17",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
     "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",
@@ -55,7 +55,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.25.7",
-    "typescript": "^5.3.3"
+    "typedoc": "^0.28.4",
+    "typescript": "^5.8.3"
   }
 }
