@@ -38,7 +38,7 @@
     "email": "brandonlehmann@gmail.com"
   },
   "dependencies": {
-    "@gibme/cache": "^20.0.1",
+    "@gibme/cache": "^20.0.2",
     "@types/which": "^3.0.4",
     "which": "^5.0.0"
   },
